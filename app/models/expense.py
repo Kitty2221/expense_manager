@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from models.categories.models import Category
+from app.models.category import Category
 
 
 class Expense(BaseModel):
