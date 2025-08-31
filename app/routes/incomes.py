@@ -11,11 +11,11 @@ test_incomes = [
 incomes_router = APIRouter()
 
 
-@incomes_router.get("/incomes/all")
+@incomes_router.get("/all")
 async def get_all_incomes():
     return test_incomes
 
 
-@incomes_router.get("/incomes/{source}")
+@incomes_router.get("/{source}")
 async def get_incomes_by_source(source):
     return [income if source.lower() == income.source.lower() else None for income in test_incomes]

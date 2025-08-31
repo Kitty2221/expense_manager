@@ -1,6 +1,7 @@
+from bson import ObjectId
 from pydantic import BaseModel
 
 
 class Category(BaseModel):
-    id: str
+    _id = str(ObjectId())
     name: str

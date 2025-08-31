@@ -6,9 +6,9 @@ from app.routes.expenses import expenses_router
 from app.routes.incomes import incomes_router
 
 app = FastAPI()
-app.include_router(categories_router)
-app.include_router(expenses_router)
-app.include_router(incomes_router)
+app.include_router(categories_router, prefix="/categories", tags=["Categories"])
+app.include_router(expenses_router, prefix="/expenses", tags=["Expenses"])
+app.include_router(incomes_router, prefix="/incomes", tags=["Incomes"])
 
 
 if __name__ == "__main__":

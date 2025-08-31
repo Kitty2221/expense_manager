@@ -15,12 +15,12 @@ test_expenses = [
 ]
 
 
-@expenses_router.get("/expenses/all")
+@expenses_router.get("/all")
 async def get_all_expenses():
     return test_expenses
 
 
-@expenses_router.get("/expenses/{category_name}")
+@expenses_router.get("/{category_name}")
 async def get_expenses_by_category(category_name):
     return [
         expenses if category_name.lower() == expenses.category.name.lower()
