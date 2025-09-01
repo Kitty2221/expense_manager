@@ -8,5 +8,5 @@ from app.models.category import Category
 class Expense(BaseModel):
     date: date
     amount: float
-    comment: str | None = None
+    comment: str
     category: Category
