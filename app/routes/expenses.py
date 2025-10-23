@@ -1,28 +1,52 @@
-from datetime import date
+from typing import List
 
-from fastapi import APIRouter
+from bson import ObjectId
+from fastapi import APIRouter, HTTPException, status
 
-from app.models.category import Category
-from app.models.expense import Expense
+from app.db.mongo_client import ExpenseManagerMongoClient
+from app.models.expense import Expense, ExpenseCreate
 
 expenses_router = APIRouter()
-
-# test_expenses = [
-#     Expense(date=date.today(), amount=30.5, comment="Tea",
-#             category=Category(name="Food")),
-#     Expense(date=date.today(), amount=22, comment="Milk",
-#             category=Category(name="Food")),
-# ]
+mongo_client = ExpenseManagerMongoClient()
 
 
 @expenses_router.get("/all")
 async def get_all_expenses():
-    return "test_expenses"
+    return await mongo_client.get_many_records(collection="expenses")
 
+@expenses_router.get("/category/{category_name}", response_model=List[Expense])
+async def get_expenses_by_category(category_name: str):
+    category = await mongo_client.get_one_record(
+        collection="categories",
+        find_obj={"name": {"$regex": f"^{category_name}$", "$options": "i"}},
+    )
 
-@expenses_router.get("/{category_name}")
-async def get_expenses_by_category(category_name):
-    return [
-        expenses if category_name.lower() == expenses.category.name.lower()
-        else None for expenses in []
-    ]
+    if not category:
+        raise HTTPException(status_code=404,
+                            detail=f"Category {category_name} not found")
+
+    return await mongo_client.get_many_records(
+        collection="expenses",
+        find_obj={"category._id": ObjectId(category["_id"])},
+    )
+
+@expenses_router.post("/add", status_code=status.HTTP_201_CREATED, response_model=Expense)
+async def add_new_expense(expense: ExpenseCreate):
+    category = await mongo_client.get_one_record(
+        collection="categories",
+        find_obj={"name": {"$regex": f"^{expense.category_name}$", "$options": "i"}}
+    )
+    if not category:
+        raise HTTPException(status_code=404, detail=f"Category {expense.category_name} not found")
+
+    expense_dict = expense.model_dump()
+    expense_dict["category"] = category
+    expense_dict.pop("category_name")
+    try:
+        response = await mongo_client.insert_one(
+            collection="expenses",
+            data=expense_dict
+        )
+        return Expense(**expense_dict, id=str(response.inserted_id))
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"Failed to add expense: {error}")

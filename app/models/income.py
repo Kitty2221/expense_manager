@@ -1,9 +1,9 @@
-from datetime import date
+from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime
 
-from pydantic import BaseModel
 
 
 class Income(BaseModel):
-    date: date
+    date: datetime
     amount: float
     source: str
