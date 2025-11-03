@@ -1,4 +1,3 @@
-// src/pages/Expenses.jsx
 import { useEffect, useState } from "react";
 
 const Expenses = () => {

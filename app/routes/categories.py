@@ -24,6 +24,7 @@ async def get_categories_by_name(name: str):
         raise HTTPException(status_code=404, detail=f"Category {name} not found")
     return category
 
+
 @categories_router.post("/add", status_code=status.HTTP_201_CREATED, response_model=Category)
 async def add_new_category(category: CategoryCreate):
     try:

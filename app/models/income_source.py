@@ -4,11 +4,11 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 
 
-class CategoryCreate(BaseModel):
+class IncomeSourceCreate(BaseModel):
     name: str
 
 
-class Category(BaseModel):
+class IncomeSource(BaseModel):
     id: Optional[str] = Field(alias="_id", default_factory=lambda: str(ObjectId()))
     name: str
 
