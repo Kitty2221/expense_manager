@@ -10,7 +10,7 @@ expenses_router = APIRouter()
 mongo_client = ExpenseManagerMongoClient()
 
 
-@expenses_router.get("/all")
+@expenses_router.get("/all", response_model=List[Expense])
 async def get_all_expenses():
     return await mongo_client.get_many_records(collection="expenses")
 

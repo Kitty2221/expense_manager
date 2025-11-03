@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from bson import ObjectId
 
 from app.db.mongo_client import ExpenseManagerMongoClient
 from app.models.income import Income
