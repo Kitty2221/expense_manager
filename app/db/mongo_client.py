@@ -75,3 +75,10 @@ class ExpenseManagerMongoClient:
         res = await self.db[collection].update_one(filter=find_obj, update=data_to_update, upsert=upsert)
         logger.info(f"<<-- {res.raw_result}")
         return res
+
+    async def delete_one(self,
+                         collection: str,
+                         find_obj: dict):
+        """Delete document"""
+        logger.debug(f"-->> Request with arguments: {locals()}")
+        return await self.db[collection].delete_one(filter=find_obj)

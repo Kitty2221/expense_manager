@@ -25,7 +25,29 @@ const Categories = () => {
     }
   };
 
-  return (
+  const handleDelete = async (id) => {
+      if (!window.confirm("Delete this category?")) return;
+
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/categories/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || "Error deleting category");
+          return;
+        }
+
+        setCategories(categories.filter((c) => c._id !== id));
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete category");
+      }
+};
+
+
+ return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
       <h1 className="text-4xl font-bold mb-8">📂 Categories</h1>
 
@@ -49,14 +71,20 @@ const Categories = () => {
         {categories.map((c) => (
           <div
             key={c._id}
-            className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex justify-between items-center"
+            className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex justify-between items-center hover:border-gray-600 transition-all"
           >
             <span className="text-lg">{c.name}</span>
+            <button
+              onClick={() => handleDelete(c._id)}
+              className="text-red-500 hover:text-red-400 transition-all text-xl"
+            >
+              ❌
+            </button>
           </div>
         ))}
       </div>
     </div>
   );
-}
+};
 
 export default Categories;

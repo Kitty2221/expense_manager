@@ -54,6 +54,24 @@ const Expenses = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this expense?")) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/expenses/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchExpenses();
+      } else {
+        console.error("Failed to delete expense");
+        alert("Failed to delete expense");
+      }
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      alert("Error deleting expense");
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
       <h2 className="text-4xl font-bold mb-8">💸 My Expenses</h2>
@@ -111,18 +129,31 @@ const Expenses = () => {
         <ul className="space-y-4 w-full max-w-3xl">
           {expenses.map((expense) => (
             <li
-              key={expense.date + expense.amount + expense.comment}
+              key={expense._id}
               className="flex justify-between items-center p-4 rounded-xl bg-gray-900 shadow-lg hover:bg-gray-800 transition"
             >
               <div className="flex flex-col">
-                <span className="font-medium text-lg">{expense.category.name}</span>
+                <span className="font-medium text-lg">
+                  {expense.category?.name || "Unknown"}
+                </span>
                 {expense.comment && (
-                  <span className="text-gray-400 text-sm">{expense.comment}</span>
+                  <span className="text-gray-400 text-sm">
+                    {expense.comment}
+                  </span>
                 )}
               </div>
-              <span className="font-bold text-red-400 text-lg">
-                -{expense.amount} ₴
-              </span>
+
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-red-400 text-lg">
+                  -{expense.amount} ₴
+                </span>
+                <button
+                  onClick={() => handleDelete(expense._id)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md transition"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
