@@ -4,7 +4,6 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
 
-  // Завантаження категорій з бекенду
   useEffect(() => {
     fetch("http://127.0.0.1:8000/categories/all")
       .then((res) => res.json())
@@ -53,7 +52,6 @@ const Categories = () => {
             className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex justify-between items-center"
           >
             <span className="text-lg">{c.name}</span>
-
           </div>
         ))}
       </div>
