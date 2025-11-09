@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
+import { API_BASE_URL } from "../config.js";
 
 const IncomeSources = () => {
     const [incomeSources, setIncomeSources] = useState([])
     const [newIncomeSource, setNewIncomeSource] = useState("")
 
     useEffect(() => {
-        fetch("http://127.0.0.1:8000/income_sources/all")
+        fetch(`${API_BASE_URL}/income_sources/all`)
         .then((res) => res.json())
         .then(setIncomeSources)
         .catch(console.error);
@@ -13,7 +14,7 @@ const IncomeSources = () => {
 
     const addIncomeSource = async () => {
         if (!newIncomeSource.trim()) return;
-        const res = await fetch("http://127.0.0.1:8000/income_sources/add", {
+        const res = await fetch(`${API_BASE_URL}/income_sources/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newIncomeSource }),
@@ -24,6 +25,26 @@ const IncomeSources = () => {
           setNewIncomeSource("");
         }
   };
+    const handleDelete = async (id) => {
+      if (!window.confirm("Delete this income source?")) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/income_sources/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.detail || "Error deleting income source");
+          return;
+        }
+
+        setIncomeSources(incomeSources.filter((c) => c._id !== id));
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete income sources");
+      }
+    };
 
   return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
@@ -52,6 +73,12 @@ const IncomeSources = () => {
             className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex justify-between items-center"
           >
             <span className="text-lg">{c.name}</span>
+            <button
+              onClick={() => handleDelete(c._id)}
+              className="text-red-500 hover:text-red-400 transition-all text-xl"
+            >
+              ❌
+            </button>
           </div>
         ))}
       </div>

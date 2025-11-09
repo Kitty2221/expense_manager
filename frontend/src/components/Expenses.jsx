@@ -1,12 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { API_BASE_URL } from "../config.js";
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [amount, setAmount] = useState("");
   const [comment, setComment] = useState("");
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [showComment, setShowComment] = useState(false);
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(0);
+
+  const inputRef = useRef(null);
 
   useEffect(() => {
     fetchExpenses();
@@ -15,30 +22,34 @@ const Expenses = () => {
 
   const fetchExpenses = async () => {
     setLoading(true);
-    const res = await fetch("http://127.0.0.1:8000/expenses/all");
+    const res = await fetch(`${API_BASE_URL}/expenses/all`);
     const data = await res.json();
     setExpenses(data);
     setLoading(false);
   };
 
   const fetchCategories = async () => {
-    const res = await fetch("http://127.0.0.1:8000/categories/all");
+    const res = await fetch(`${API_BASE_URL}/categories/all`);
     const data = await res.json();
     setCategories(data);
   };
+
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(categoryQuery.toLowerCase())
+  );
 
   const addExpense = async (e) => {
     e.preventDefault();
     if (!selectedCategory || !amount) return;
 
     const payload = {
-      date: new Date().toISOString(),
+      date,
       amount: parseFloat(amount),
       comment: comment || "",
-      category_name: selectedCategory,
+      category_name: selectedCategory.name,
     };
 
-    const response = await fetch("http://127.0.0.1:8000/expenses/add", {
+    const response = await fetch(`${API_BASE_URL}/expenses/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -47,28 +58,34 @@ const Expenses = () => {
     if (response.ok) {
       setAmount("");
       setComment("");
-      setSelectedCategory("");
+      setSelectedCategory(null);
+      setCategoryQuery("");
+      setDate(new Date().toISOString().split("T")[0]);
+      setHighlightIndex(0);
       fetchExpenses();
+      inputRef.current.focus();
     } else {
       alert("Failed to add expense");
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this expense?")) return;
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/expenses/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        fetchExpenses();
-      } else {
-        console.error("Failed to delete expense");
-        alert("Failed to delete expense");
+  const handleKeyDown = (e) => {
+    if (filteredCategories.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIndex((prev) => (prev + 1) % filteredCategories.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIndex(
+        (prev) => (prev - 1 + filteredCategories.length) % filteredCategories.length
+      );
+    } else if (e.key === "Enter") {
+      if (!selectedCategory && filteredCategories[highlightIndex]) {
+        e.preventDefault();
+        setSelectedCategory(filteredCategories[highlightIndex]);
+        setCategoryQuery(filteredCategories[highlightIndex].name);
       }
-    } catch (error) {
-      console.error("Error deleting expense:", error);
-      alert("Error deleting expense");
     }
   };
 
@@ -76,41 +93,86 @@ const Expenses = () => {
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
       <h2 className="text-4xl font-bold mb-8">💸 My Expenses</h2>
 
-      {/* Form */}
       <form
         onSubmit={addExpense}
-        className="flex flex-col md:flex-row gap-4 w-full max-w-3xl mb-8"
+        className="flex flex-col md:flex-row gap-2 w-full max-w-3xl items-center mb-8 relative"
       >
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          required
-          className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
-        >
-          <option value="">Select category...</option>
-          {categories.map((cat) => (
-            <option key={cat._id} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+        {/* Category input */}
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder="Category"
+            value={categoryQuery}
+            ref={inputRef}
+            onChange={(e) => {
+              setCategoryQuery(e.target.value);
+              setSelectedCategory(null);
+              setHighlightIndex(0);
+            }}
+            onKeyDown={handleKeyDown}
+            required
+            className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
 
+          {categoryQuery && !selectedCategory && filteredCategories.length > 0 && (
+            <ul className="absolute bg-gray-800 mt-1 w-full max-h-40 overflow-y-auto rounded-lg border border-gray-700 z-10">
+              {filteredCategories.map((cat, index) => (
+                <li
+                  key={cat._id}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setCategoryQuery(cat.name);
+                  }}
+                  className={`p-2 cursor-pointer flex items-center gap-2 hover:bg-gray-700 ${
+                    index === highlightIndex ? "bg-gray-700" : ""
+                  }`}
+                >
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: cat.color || "#6366f1" }}
+                  ></span>
+                  {cat.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Amount */}
         <input
           type="number"
           placeholder="Amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
-          className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
+          className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white w-24 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
 
+        {/* Date */}
         <input
-          type="text"
-          placeholder="Comment"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
+
+        {/* Comment */}
+        {showComment && (
+          <input
+            type="text"
+            placeholder="Comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="p-3 rounded-lg bg-gray-900 border border-gray-700 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => setShowComment(!showComment)}
+          className="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg"
+        >
+          {showComment ? "–" : "+"}
+        </button>
 
         <button
           type="submit"
@@ -137,10 +199,9 @@ const Expenses = () => {
                   {expense.category?.name || "Unknown"}
                 </span>
                 {expense.comment && (
-                  <span className="text-gray-400 text-sm">
-                    {expense.comment}
-                  </span>
+                  <span className="text-gray-400 text-sm">{expense.comment}</span>
                 )}
+                <span className="text-gray-500 text-sm">{expense.date.split("T")[0]}</span>
               </div>
 
               <div className="flex items-center gap-3">

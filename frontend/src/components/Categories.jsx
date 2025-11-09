@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "../config.js";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/categories/all")
+    fetch(`${API_BASE_URL}/categories/all`)
       .then((res) => res.json())
       .then(setCategories)
       .catch(console.error);
@@ -13,7 +14,7 @@ const Categories = () => {
 
   const addCategory = async () => {
     if (!newCategory.trim()) return;
-    const res = await fetch("http://127.0.0.1:8000/categories/add", {
+    const res = await fetch(`${API_BASE_URL}/categories/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newCategory }),
@@ -29,7 +30,7 @@ const Categories = () => {
       if (!window.confirm("Delete this category?")) return;
 
       try {
-        const res = await fetch(`http://127.0.0.1:8000/categories/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
           method: "DELETE",
         });
 
