@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { API_BASE_URL } from "../config.js";
+import { useNavigate } from "react-router-dom";
 
 const Incomes = () => {
   const [incomes, setIncomes] = useState([]);
@@ -113,8 +114,10 @@ const Incomes = () => {
     }
   };
 
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-black text-white py-12 px-4 flex flex-col items-center">
+      <button onClick={() => navigate("/")} className="m-1 bg-green-600 hover:bg-white hover:text-green-600 text-white px-1 py-1 rounded-md transition">Dashboard</button>
       <h2 className="text-4xl font-bold mb-8">💰 My Incomes</h2>
 
       <form

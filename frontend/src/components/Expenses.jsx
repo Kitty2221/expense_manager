@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { API_BASE_URL } from "../config.js";
+import { useNavigate } from "react-router-dom";
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -89,9 +90,25 @@ const Expenses = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this expense?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/expenses/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) fetchExpenses();
+      else alert("Failed to delete expense");
+    } catch (err) {
+      console.error("Error deleting expense:", err);
+      alert("Error deleting expense");
+    }
+  };
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
+      <button onClick={() => navigate("/")} className="m-1 bg-red-600 hover:bg-white hover:text-red-600 text-white px-1 py-1 rounded-md transition">Dashboard</button>
       <h2 className="text-4xl font-bold mb-8">💸 My Expenses</h2>
+
 
       <form
         onSubmit={addExpense}

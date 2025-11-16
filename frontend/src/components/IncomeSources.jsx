@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import { API_BASE_URL } from "../config.js";
+import { useNavigate } from "react-router-dom";
 
 const IncomeSources = () => {
     const [incomeSources, setIncomeSources] = useState([])
@@ -45,9 +46,11 @@ const IncomeSources = () => {
         alert("Failed to delete income sources");
       }
     };
+    const navigate = useNavigate()
 
   return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
+      <button onClick={() => navigate("/")} className="m-1 bg-pink-600 hover:bg-white hover:text-pink-600 text-white px-1 py-1 rounded-md transition">Dashboard</button>
       <h1 className="text-4xl font-bold mb-8">📂 Income Sources</h1>
 
       <div className="flex gap-2 mb-6">

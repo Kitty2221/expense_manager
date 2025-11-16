@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "../config.js";
+import { useNavigate } from "react-router-dom";
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -46,10 +47,11 @@ const Categories = () => {
         alert("Failed to delete category");
       }
 };
-
+const navigate = useNavigate()
 
  return (
     <div className="min-h-screen w-full bg-black text-white flex flex-col items-center py-10 px-4">
+      <button onClick={() => navigate("/")} className="m-1 bg-blue-600 hover:bg-white hover:text-blue-600 text-white px-1 py-1 rounded-md transition">Dashboard</button>
       <h1 className="text-4xl font-bold mb-8">📂 Categories</h1>
 
       <div className="flex gap-2 mb-6">
