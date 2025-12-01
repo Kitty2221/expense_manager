@@ -37,8 +37,14 @@ MCC_CATEGORIES = {
     0: "other"
 }
 
+internal_transfer = [
+    'Часткове зняття банки',
+    'Округлення балансу',
+    'Поповнення',
+    'Переказ на картку',
+    'Trip'
+]
 
 def get_category_from_mcc(mcc: int):
     return MCC_CATEGORIES.get(mcc, "other").upper()
-
 
