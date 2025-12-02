@@ -1,5 +1,7 @@
+from fastapi import Request
 import monobank
 import datetime
+import requests
 
 import os
 from dotenv import load_dotenv
@@ -15,6 +17,7 @@ mongo_client = ExpenseManagerMongoClient()
 
 load_dotenv()
 mono_client = monobank.Client(os.environ.get("MONO_API_TOKEN"))
+url = os.environ.get("URL")
 
 
 def fetch_transactions(days):
@@ -129,3 +132,22 @@ async def import_transactions():
         "skipped_transfers": skipped_transfers,
         "total_received": len(raw_data),
     }
+
+@expenses_mono_router.post("/webhook")
+async def post_test_webhook(body: dict):
+    print(f"Webhook received{body}")
+    return {"status": "ok"}
+
+@expenses_mono_router.get("/webhook")
+async def get_test_webhook(request: Request):
+    print(f"Webhook received aaaaaaaaaaaaaaaaaaaaaa")
+
+@expenses_mono_router.post("/set-webhook")
+async def set_webhook():
+    reg_webhook = requests.post(
+        url,
+        headers={"X-Token": os.getenv("MONO_API_TOKEN")},
+        json={"webHookUrl": url}
+    )
+
+    return {"status": reg_webhook.status_code, "response": reg_webhook.text}
