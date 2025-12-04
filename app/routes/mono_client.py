@@ -1,4 +1,3 @@
-from fastapi import Request
 import monobank
 import datetime
 import requests
@@ -19,6 +18,8 @@ load_dotenv()
 mono_client = monobank.Client(os.environ.get("MONO_API_TOKEN"))
 url = os.environ.get("URL")
 
+def is_internal(description: str) -> bool:
+    return any(keyword in description for keyword in internal_transfer)
 
 def fetch_transactions(days):
     today = datetime.datetime.now()
@@ -63,7 +64,6 @@ async def import_transactions():
 
         if raw_amount < 0:
             if any(keyword in description for keyword in internal_transfer):
-                print("kkk")
                 skipped_transfers += 1
                 continue
             amount = abs(raw_amount)
@@ -96,7 +96,7 @@ async def import_transactions():
             amount = raw_amount
 
             # TODO: remove this
-            if transaction.get("counterName", None) == "Holub Kateryna":
+            if transaction.get("counterName", None) == os.environ.get("PHRASE"):
                 source_name = "Salary"
             else:
                 source_name = "Present"
@@ -134,13 +134,71 @@ async def import_transactions():
     }
 
 @expenses_mono_router.post("/webhook")
-async def post_test_webhook(body: dict):
+async def post_webhook(body: dict):
     print(f"Webhook received{body}")
-    return {"status": "ok"}
+    if body.get("type") != "StatementItem":
+        return {"status": "ignored"}
+
+    transaction = body["data"]["statementItem"]
+    description = transaction.get("description", "")
+    raw_amount = transaction["amount"] / 100
+    date = datetime.datetime.fromtimestamp(transaction["time"])
+    mcc = transaction.get("mcc", 0)
+    category_from_mcc = get_category_from_mcc(mcc)
+
+    if is_internal(description):
+        return {"status": "skipped_transaction"}
+
+    if raw_amount < 0:
+        amount = abs(raw_amount)
+        category = await mongo_client.get_one_record(
+            "categories",
+            {"name": {"$regex": f"^{category_from_mcc}$", "$options": "i"}}
+        )
+
+        if not category:
+            insert_cat = await mongo_client.insert_one(
+                "categories", {"name": category_from_mcc}
+            )
+            category = {"_id": insert_cat.inserted_id, "name": category_from_mcc}
+
+        expense_dict = {
+            "amount": amount,
+            "date": date,
+            "comment": description,
+            "category": category,
+        }
+        await mongo_client.insert_one("expenses", expense_dict)
+    else:
+        if transaction.get("counterName", None) == os.environ.get("PHRASE"):
+            source_name = "Salary"
+        else:
+            source_name = "Present"
+
+        source = await mongo_client.get_one_record(
+            "income_source",
+            {"name": {"$regex": f"^{source_name}$", "$options": "i"}}
+        )
+
+        if not source:
+            new_src = await mongo_client.insert_one(
+                "income_source", {"name": source_name}
+            )
+            source = {"_id": new_src.inserted_id, "name": source_name}
+
+        income_doc = {
+            "amount": raw_amount,
+            "date": date,
+            "source": source,
+        }
+
+        await mongo_client.insert_one("incomes", income_doc)
+
 
 @expenses_mono_router.get("/webhook")
-async def get_test_webhook(request: Request):
-    print(f"Webhook received aaaaaaaaaaaaaaaaaaaaaa")
+async def get_webhook():
+   return {"status": "OK"}
+
 
 @expenses_mono_router.post("/set-webhook")
 async def set_webhook():
