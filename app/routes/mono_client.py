@@ -17,6 +17,7 @@ mongo_client = ExpenseManagerMongoClient()
 load_dotenv()
 mono_client = monobank.Client(os.environ.get("MONO_API_TOKEN"))
 url = os.environ.get("URL")
+app_url = os.environ['VERCEL_PROJECT_PRODUCTION_URL']
 
 def is_internal(description: str) -> bool:
     return any(keyword in description for keyword in internal_transfer)
@@ -199,13 +200,12 @@ async def post_webhook(body: dict):
 async def get_webhook():
    return {"status": "OK"}
 
-
 @expenses_mono_router.post("/set-webhook")
 async def set_webhook():
     reg_webhook = requests.post(
         url,
         headers={"X-Token": os.getenv("MONO_API_TOKEN")},
-        json={"webHookUrl": url}
+        json={"webHookUrl": f"https://{app_url}/expenses_mono/webhook"}
     )
 
     return {"status": reg_webhook.status_code, "response": reg_webhook.text}
