@@ -18,7 +18,7 @@ app.include_router(expenses_mono_router, prefix="/expenses_mono", tags=["Expense
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "https://expense-manager-kitty.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
