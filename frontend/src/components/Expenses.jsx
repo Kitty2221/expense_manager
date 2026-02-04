@@ -23,10 +23,18 @@ const Expenses = () => {
 
   const fetchExpenses = async () => {
     setLoading(true);
-    const res = await fetch(`${API_BASE_URL}/expenses/all`);
-    const data = await res.json();
-    setExpenses(data);
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_BASE_URL}/expenses/all`);
+      const data = await res.json();
+
+      const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      setExpenses(sorted.slice(0, 20));
+    } catch (err) {
+      console.error("Failed to fetch expenses:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchCategories = async () => {

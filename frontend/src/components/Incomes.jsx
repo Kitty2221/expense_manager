@@ -24,7 +24,8 @@ const Incomes = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/incomes/all`);
       const data = await res.json();
-      setIncomes(data);
+      const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setIncomes(sorted.slice(0, 20));
     } catch (err) {
       console.error("Failed to fetch incomes:", err);
     } finally {

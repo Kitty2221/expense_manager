@@ -183,21 +183,21 @@ export default function Dashboard() {
         <div className="bg-gray-800 rounded-lg p-6 shadow flex flex-col">
           <span className="text-gray-400">Total Expenses (this month)</span>
           <span className="text-red-400 text-2xl font-bold">
-            -{totalExpenses} ₴
+            -{totalExpenses.toFixed(2)} ₴
           </span>
         </div>
         <div className="bg-gray-800 rounded-lg p-6 shadow flex flex-col">
           <span className="text-gray-400">Total Incomes (this month)</span>
           <span className="text-green-400 text-2xl font-bold">
-            +{totalIncomes} ₴
+            +{totalIncomes.toFixed(2)} ₴
           </span>
         </div>
         <div className="bg-gray-800 rounded-lg p-6 shadow flex flex-col">
           <span className="text-gray-400">Balance</span>
           <span
-            className={`text-2xl font-bold ${balance >= 0 ? "text-green-400" : "text-red-400"}`}
+            className={`text-2xl font-bold ${balance.toFixed(2) >= 0 ? "text-green-400" : "text-red-400"}`}
           >
-            {balance >= 0 ? `+${balance}` : balance} ₴
+            {balance.toFixed(2) >= 0 ? `+${balance.toFixed(2)}` : balance.toFixed(2)} ₴
           </span>
         </div>
       </div>
@@ -205,7 +205,6 @@ export default function Dashboard() {
       {/* CALENDAR */}
       <div className="bg-gray-800 rounded-lg p-4 shadow mb-6">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* === Calendar === */}
           <div className="w-full lg:w-1/2">
             <div className="p-2 text-center text-gray-300">
               Activity calendar

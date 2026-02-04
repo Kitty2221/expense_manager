@@ -1,14 +1,15 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.categories import categories_router
 from app.routes.expenses import expenses_router
 from app.routes.incomes import incomes_router
 from app.routes.income_source import incomes_sources_router
 from app.routes.mono_client import expenses_mono_router
-from fastapi.middleware.cors import CORSMiddleware
+from app.utils.logger_setup import setup_logger
 
-
+setup_logger()
 app = FastAPI()
 app.include_router(categories_router, prefix="/categories", tags=["Categories"])
 app.include_router(expenses_router, prefix="/expenses", tags=["Expenses"])
