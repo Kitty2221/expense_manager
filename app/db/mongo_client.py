@@ -15,7 +15,7 @@ class ExpenseManagerMongoClient:
 
     def __new__(cls):
         if not hasattr(cls, "instance"):
-            logger.debug("Make new instance of MongoClient")
+            logger.info("Make new instance of MongoClient")
             cls.instance = super().__new__(cls)
 
             cls.instance.client = AsyncIOMotorClient(
@@ -35,7 +35,7 @@ class ExpenseManagerMongoClient:
                              *args,
                              **kwargs) -> Optional[dict]:
         """Get one records"""
-        logger.debug(f"-->> Request with arguments: {locals()}")
+        logger.info(f"-->> Request with arguments: {locals()}")
         res = await self.db[collection].find_one(find_obj, *args, **kwargs)
         logger.debug(f"<<-- {res}")
         return res.get(field) if field is not None and res else res
@@ -48,7 +48,7 @@ class ExpenseManagerMongoClient:
                                **kwargs,
                                ) -> Optional[list]:
         """Get many records"""
-        logger.debug(f"-->> Request with arguments: {locals()}")
+        logger.info(f"-->> Request with arguments: {locals()}")
         if find_obj is None:
             find_obj = {}
         cursor = self.db[collection].find(find_obj, projection, *args, **kwargs)
@@ -58,7 +58,7 @@ class ExpenseManagerMongoClient:
                          collection: str,
                          data: Dict):
         """Insert one record"""
-        logger.debug(f"-->> Request with arguments: {locals()}")
+        logger.info(f"-->> Request with arguments: {locals()}")
         return await self.db[collection].insert_one(data)
 
     async def update_one(self,
@@ -71,7 +71,7 @@ class ExpenseManagerMongoClient:
                          **kwargs,
                          ) -> UpdateResult:
         """Update document"""
-        logger.debug(f"-->> {locals()}")
+        logger.info(f"-->> {locals()}")
         res = await self.db[collection].update_one(filter=find_obj, update=data_to_update, upsert=upsert)
         logger.info(f"<<-- {res.raw_result}")
         return res
@@ -80,5 +80,5 @@ class ExpenseManagerMongoClient:
                          collection: str,
                          find_obj: dict):
         """Delete document"""
-        logger.debug(f"-->> Request with arguments: {locals()}")
+        logger.info(f"-->> Request with arguments: {locals()}")
         return await self.db[collection].delete_one(filter=find_obj)
